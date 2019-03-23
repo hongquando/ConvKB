@@ -1,0 +1,11 @@
+10
+Gramene.annotations	0
+rapdb.ID	1
+rapdb.Position	2
+oryzabase.CGSNL Gene Name	3
+oryzabase.Trait Class	4
+oryzabase.Gene Ontology	5
+oryzabase.Trait Ontology	6
+oryzabase.Plant Ontology	7
+funricegene_genekeywords.Keyword	8
+funricegene_faminfo.Name	9
