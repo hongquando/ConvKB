@@ -114,6 +114,7 @@ class TrainConvKB():
             net.rel_embeddings.weight.data.copy_(torch.from_numpy(embedding_relations))
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        net.to(device)
         print("Using CUDA: {}".format(next(net.parameters()).is_cuda))
         net.train()
         optimizer = optim.Adam(net.parameters(), lr=args.trans_e_learning_rate)
