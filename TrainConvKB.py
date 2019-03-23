@@ -353,7 +353,7 @@ def _get_learning_rate(o):
 
 if __name__ == '__main__':
     #demo = TrainConvKB().train()
-    if not os.path.exists(args.conv_kb_save_path):
+    if not os.path.exists(args.conv_kb_save_path) and not os.path.exists(args.trans_e_save_path):
         TrainConvKB().train()
     if torch.cuda.is_available():
         net = torch.load(args.conv_kb_save_path)
