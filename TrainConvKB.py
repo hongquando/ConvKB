@@ -13,6 +13,7 @@ from numpy import linalg as LA
 import numpy as np
 from math import log10,floor
 import json
+import pickle
 
 args = Namespace(
     entity_path='./data/GENE/entity2id.txt',
@@ -30,12 +31,12 @@ args = Namespace(
     trans_e_margin=1,
     trans_e_weight_decay=0.001,
     trans_e_learning_rate=5e-4,
-    trans_e_n_epochs=50,
+    trans_e_n_epochs=1,
     trans_e_save_path='./data/GENE/TransE.pkl',
 
     conv_kb_weight_decay=0.001,
     conv_kb_learning_rate=1e-4,
-    conv_kb_n_epochs=75,
+    conv_kb_n_epochs=1,
     conv_kb_momentum=0.9,
     new_conv_kb_save_path='./data/GENE/TempConvKB.pkl',
     conv_kb_save_path='./data/GENE/ConvKB.pkl'
@@ -114,7 +115,7 @@ class TrainConvKB():
             net.rel_embeddings.weight.data.copy_(torch.from_numpy(embedding_relations))
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        net.to(device)
+        #net.to(device)
         print("Using CUDA: {}".format(next(net.parameters()).is_cuda))
         net.train()
         optimizer = optim.Adam(net.parameters(), lr=args.trans_e_learning_rate)
@@ -363,11 +364,14 @@ if __name__ == '__main__':
     net = list(net.items())
     # 1: entity
     # 2: relation
-    data_train = net[0][1].numpy()
+    data_train = net[0][1].cpu().numpy()
     nbrs = NearestNeighbors(n_neighbors=15, algorithm='ball_tree').fit(data_train)
     distances, indices = nbrs.kneighbors(data_train)
     with open("./result/data/db.json", "rb") as f:
         data = json.load(f)
+        f.close()
+    with open("./data/GENE/id_dict", "rb") as f:
+        id_dict = pickle.load(f)
         f.close()
     processed_entity_2_id = load_data(args.entity_path, ignore_first=True)
     relation_2_id = load_data(args.relation_path, ignore_first=True)
@@ -384,21 +388,26 @@ if __name__ == '__main__':
             parts = line.split("\t")
             processed_id_2_entity[int(parts[1])] = parts[0]
     while True:
-        iric_name = input("\nType iricname: ").strip()
-        if iric_name == "":
+        gene_name = input("\nType genename: ").strip()
+        if gene_name == "":
             break
-        if iric_name not in processed_entity_2_id.keys():
+        if gene_name not in processed_entity_2_id.keys():
             print("Gene not found")
             continue
-        print("Gene {}\n{}".format(iric_name, data[iric_name]))
-        print("Top 3 gene related: ")
+        print("Gene {}\n{}".format(gene_name, data[id_dict[gene_name]]))
+        print("Top 5 gene related: ")
         count = 0
-        for index in indices[processed_entity_2_id[iric_name]][1:]:
+        for index in indices[processed_entity_2_id[gene_name]][1:]:
             similar_gene = processed_id_2_entity[index]
-            if similar_gene in data.keys():
-                print("Gene {}\n{}".format(
-                    similar_gene, data[similar_gene]))
-                count+=1
-                if count == 3: break
+            if similar_gene in id_dict.keys():
+                if id_dict[similar_gene] in data.keys():
+                    print("Gene {}\n{}".format(
+                        similar_gene, data[id_dict[similar_gene]]))
+                    count+=1
+            if count == 5: break
+            # else:
+            #     print("Att {}\n".format(similar_gene))
+            #     count += 1
+            #     if count == 5: break
 
 
