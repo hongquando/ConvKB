@@ -354,7 +354,6 @@ def _get_learning_rate(o):
     return lr
 
 if __name__ == '__main__':
-    #demo = TrainConvKB().train()
     if not os.path.exists(args.conv_kb_save_path) and not os.path.exists(args.trans_e_save_path):
         TrainConvKB().train()
     if torch.cuda.is_available():
@@ -367,44 +366,53 @@ if __name__ == '__main__':
     data_train = net[0][1].cpu().numpy()
     nbrs = NearestNeighbors(n_neighbors=15, algorithm='ball_tree').fit(data_train)
     distances, indices = nbrs.kneighbors(data_train)
-    with open("./result/data/db.json", "rb") as f:
-        data = json.load(f)
+    with open("./data/GENE/kNN.pkl", "wb") as f:
+        pickle.dump(nbrs,f)
         f.close()
-    with open("./data/GENE/id_dict", "rb") as f:
-        id_dict = pickle.load(f)
+    with open("./data/GENE/indices.pkl", "wb") as f:
+        pickle.dump(indices, f)
         f.close()
-    processed_entity_2_id = load_data(args.entity_path, ignore_first=True)
-    relation_2_id = load_data(args.relation_path, ignore_first=True)
-    processed_id_2_entity = dict()
-    i = 0
-    with open(args.entity_path, 'r') as f:
-        for line in f:
-            if True and i == 0:
-                i += 1
-                continue
-            line = line.strip()
-            if line == '':
-                continue
-            parts = line.split("\t")
-            processed_id_2_entity[int(parts[1])] = parts[0]
-    while True:
-        gene_name = input("\nType genename: ").strip()
-        if gene_name == "":
-            break
-        if gene_name not in processed_entity_2_id.keys():
-            print("Gene not found")
-            continue
-        print("Gene {}\n{}".format(gene_name, data[id_dict[gene_name]]))
-        print("Top 5 gene related: ")
-        count = 0
-        for index in indices[processed_entity_2_id[gene_name]][1:]:
-            similar_gene = processed_id_2_entity[index]
-            if similar_gene in id_dict.keys():
-                if id_dict[similar_gene] in data.keys():
-                    print("Gene {}\n{}".format(
-                        similar_gene, data[id_dict[similar_gene]]))
-                    count+=1
-            if count == 5: break
+    with open("./data/GENE/distance.pkl", "wb") as f:
+        pickle.dump(distances, f)
+        f.close()
+    # with open("./data/GENE/db.json", "rb") as f:
+    #     data = json.load(f)
+    #     f.close()
+    # with open("./data/GENE/id_dict", "rb") as f:
+    #     id_dict = pickle.load(f)
+    #     f.close()
+    # processed_entity_2_id = load_data(args.entity_path, ignore_first=True)
+    # relation_2_id = load_data(args.relation_path, ignore_first=True)
+    # processed_id_2_entity = dict()
+    # i = 0
+    # with open(args.entity_path, 'r') as f:
+    #     for line in f:
+    #         if True and i == 0:
+    #             i += 1
+    #             continue
+    #         line = line.strip()
+    #         if line == '':
+    #             continue
+    #         parts = line.split("\t")
+    #         processed_id_2_entity[int(parts[1])] = parts[0]
+    # while True:
+    #     gene_name = input("\nType genename: ").strip()
+    #     if gene_name == "":
+    #         break
+    #     if gene_name not in processed_entity_2_id.keys():
+    #         print("Gene not found")
+    #         continue
+    #     print("Gene {}\n{}".format(gene_name, data[id_dict[gene_name]]))
+    #     print("Top 5 gene related: ")
+    #     count = 0
+        # for index in indices[processed_entity_2_id[gene_name]][1:]:
+        #     similar_gene = processed_id_2_entity[index]
+        #     if similar_gene in id_dict.keys():
+        #         if id_dict[similar_gene] in data.keys():
+        #             print("Gene {}\n{}".format(
+        #                 similar_gene, data[id_dict[similar_gene]]))
+        #             count+=1
+        #     if count == 5: break
             # else:
             #     print("Att {}\n".format(similar_gene))
             #     count += 1
